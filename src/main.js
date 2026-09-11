@@ -1,111 +1,54 @@
-const W = 1280, H = 720;
-const WORLD_W = 3200, WORLD_H = 2200;
-
-const state = {
-  player: {x:1500,y:1100,hp:100,maxHp:100,energy:100,xp:0,level:1,gold:125,crystal:8},
-  kills:0, inventory:[
-    ['Moonsteel Saber','Rare','Weapon'],['Wayfarer Mantle','Uncommon','Armor'],['Luminous Shard','Rare','Material'],['Wild Herb','Common','Material'],['Aether Flask','Uncommon','Consumable']
-  ], cooldown:0, attacking:false
-};
-
-const keys = new Set();
-const enemies = [];
-const resources = [];
-const particles = [];
-const trees = [];
-const rocks = [];
-
-function hash(n){const x=Math.sin(n*12.9898)*43758.5453;return x-Math.floor(x)}
-function rand(a,b){return a+(b-a)*Math.random()}
-function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
-
-class WorldScene extends Phaser.Scene {
-  constructor(){super('world')}
-  create(){
-    this.cameras.main.setBackgroundColor('#07111b');
-    this.input.mouse.disableContextMenu();
-    this.makeTextures();
-    this.buildWorld();
-    this.player = this.add.sprite(state.player.x,state.player.y,'player');
-    this.player.setDepth(20);
-    this.player.setScale(.9);
-    this.spawnEnemies();
-    this.spawnResources();
-    this.cameras.main.startFollow(this.player,true,.08,.08);
-    this.cameras.main.setBounds(0,0,WORLD_W,WORLD_H);
-    this.physics.world.setBounds(0,0,WORLD_W,WORLD_H);
-    this.input.on('pointerdown', p=>{if(p.leftButtonDown()) this.attack()});
-    this.add.text(50,50,'',{fontFamily:'Inter'}).setScrollFactor(0);
-  }
-  makeTextures(){
-    const g=this.make.graphics({x:0,y:0,add:false});
-    // Player sprite: layered, detailed silhouette with cloak and weapon.
-    g.clear(); g.fillStyle(0x0a1423);g.fillCircle(32,20,13);g.fillStyle(0x5fe4ff);g.fillCircle(32,19,7);g.fillStyle(0x182e49);g.fillTriangle(10,58,32,27,54,58);g.fillStyle(0x5b83a8);g.fillRect(18,35,28,22);g.lineStyle(3,0x8de9ff);g.lineBetween(45,32,60,18);g.strokeCircle(32,39,25);g.generateTexture('player',64,64);
-    g.clear();g.fillStyle(0x0d1722);g.fillCircle(28,29,18);g.fillStyle(0x83b9cf);g.fillCircle(23,24,7);g.fillStyle(0x263c4b);g.fillTriangle(8,50,28,35,48,50);g.lineStyle(3,0x7de1ef);g.strokeCircle(28,29,18);g.generateTexture('wolf',56,56);
-    g.clear();g.fillStyle(0x17202e);g.fillCircle(30,25,17);g.fillStyle(0x70e3ff);g.fillCircle(25,22,5);g.fillStyle(0x334b65);g.fillTriangle(7,54,30,34,53,54);g.lineStyle(2,0x8ceaff);g.strokeCircle(30,25,18);g.generateTexture('stalker',60,60);
-    g.clear();g.fillStyle(0x385f42);g.fillCircle(18,18,18);g.fillCircle(39,17,18);g.fillCircle(29,5,14);g.fillStyle(0x214a35);g.fillRect(24,18,10,35);g.generateTexture('tree',58,70);
-    g.clear();g.fillStyle(0x53677c);g.fillCircle(19,20,15);g.fillCircle(35,17,17);g.fillCircle(30,31,18);g.fillStyle(0x2b4053);g.fillEllipse(28,42,38,12);g.generateTexture('rock',58,50);
-    g.destroy();
-  }
-  buildWorld(){
-    const bg=this.add.graphics();
-    bg.fillStyle(0x091722);bg.fillRect(0,0,WORLD_W,WORLD_H);
-    // biome bands and subtle terrain tiles
-    for(let y=0;y<WORLD_H;y+=64){for(let x=0;x<WORLD_W;x+=64){
-      const n=hash(x*.013+y*.007); const c=n>.72?0x0e2630:n>.45?0x0c222b:0x0a1c27;
-      bg.fillStyle(c,1);bg.fillRect(x,y,64,64);
-      if(n>.9){bg.lineStyle(1,0x1b3b43,.55);bg.strokeCircle(x+32,y+30,8+n*12)}
-    }}
-    // glowing river
-    bg.lineStyle(26,0x163c52,.9);bg.beginPath();bg.moveTo(0,380);bg.bezierCurveTo(600,520,900,300,1400,470);bg.bezierCurveTo(2000,660,2400,400,3200,560);bg.strokePath();
-    bg.lineStyle(3,0x3b9db7,.45);bg.beginPath();bg.moveTo(0,380);bg.bezierCurveTo(600,520,900,300,1400,470);bg.bezierCurveTo(2000,660,2400,400,3200,560);bg.strokePath();
-    // region landmarks
-    this.add.text(260,180,'WHISPERING WILDS',{fontFamily:'Rajdhani',fontSize:28,color:'#4fa8a9',letterSpacing:7,alpha:.55});
-    this.add.text(2340,1720,'FROSTFALL PASS',{fontFamily:'Rajdhani',fontSize:30,color:'#76cde0',letterSpacing:7,alpha:.45});
-    this.add.text(2480,420,'ANCIENT RUINS',{fontFamily:'Rajdhani',fontSize:28,color:'#a99fe5',letterSpacing:7,alpha:.45});
-    for(let i=0;i<75;i++){const x=rand(80,3120),y=rand(80,2120); if(Math.hypot(x-1500,y-1100)<270)continue;const t=this.add.sprite(x,y,'tree').setAlpha(rand(.55,.9)).setScale(rand(.75,1.2));t.setDepth(5);trees.push(t)}
-    for(let i=0;i<40;i++){const x=rand(70,3130),y=rand(70,2130); if(Math.hypot(x-1500,y-1100)<240)continue;const r=this.add.sprite(x,y,'rock').setAlpha(.7).setScale(rand(.65,1.15));r.setDepth(4);rocks.push(r)}
-    const shrine=this.add.circle(1500,1100,185,0x1c5b72,.10).setStrokeStyle(2,0x62e4ff,.35); shrine.setDepth(2);
-    this.add.text(1500,870,'AETHER CAMP',{fontFamily:'Rajdhani',fontSize:18,color:'#9eeaff',stroke:'#06101a',strokeThickness:4}).setOrigin(.5).setDepth(30);
-  }
-  spawnEnemies(){
-    const spots=[[850,700,'wolf'],[1060,1460,'wolf'],[1900,760,'stalker'],[2160,1240,'stalker'],[720,1650,'wolf'],[2380,980,'stalker'],[1820,1640,'wolf'],[2700,730,'stalker']];
-    spots.forEach((s,i)=>{const e=this.add.sprite(s[0],s[1],s[2]).setDepth(18);e.hp=s[2]==='stalker'?60:45;e.maxHp=e.hp;e.speed=s[2]==='stalker'?70:55;e.cool=0;e.dead=false;e.name=s[2]==='stalker'?'Crystal Stalker':'Gloom Wolf';e.t=s[2];enemies.push(e)})
-  }
-  spawnResources(){
-    for(let i=0;i<30;i++){const x=rand(120,3080),y=rand(120,2080);if(Math.hypot(x-1500,y-1100)<220)continue;const type=i%3===0?'crystal':i%3===1?'herb':'ore';const col={crystal:0x7eeaff,herb:0x69d7a0,ore:0x95a9c0}[type];const g=this.add.circle(x,y,8,col,.7).setStrokeStyle(2,col,.25);g.setDepth(8);g.type=type;resources.push(g)}
-  }
-  attack(){
-    if(state.cooldown>0)return;
-    state.cooldown=280;state.attacking=true;this.player.setTint(0xbff8ff);
-    this.time.delayedCall(110,()=>{state.attacking=false;this.player.clearTint()});
-    enemies.forEach(e=>{if(!e.dead && Phaser.Math.Distance.Between(this.player.x,this.player.y,e.x,e.y)<115){e.hp-=32;this.hitFX(e.x,e.y);if(e.hp<=0)this.killEnemy(e)}});
-    if(state.player.energy>=10){state.player.energy=Math.max(0,state.player.energy-10)}
-  }
-  hitFX(x,y){for(let i=0;i<8;i++){const p=this.add.circle(x,y,rand(2,5),0x79e8ff,.9).setDepth(40);particles.push({obj:p,vx:rand(-90,90),vy:rand(-120,20),life:400})}}
-  killEnemy(e){e.dead=true;e.setVisible(false);state.kills++;state.player.xp+=35;state.player.gold+=12;state.player.crystal+=1;this.toast(`Defeated ${e.name}`,`+35 XP  ·  +12 gold`);this.updateProgress();this.levelCheck()}
-  levelCheck(){const need=state.player.level*100;if(state.player.xp>=need){state.player.xp-=need;state.player.level++;state.player.maxHp+=12;state.player.hp=state.player.maxHp;this.toast('LEVEL UP',`You reached level ${state.player.level}`)}}
-  toast(title,msg){const el=document.createElement('div');el.className='toast';el.innerHTML=`<strong>${title}</strong><br><span>${msg}</span>`;document.querySelector('#toast-stack').appendChild(el);setTimeout(()=>el.remove(),2200)}
-  update(_,dt){
-    const speed=210*(keys.has('shift')?1.35:1);let dx=0,dy=0;if(keys.has('w'))dy--;if(keys.has('s'))dy++;if(keys.has('a'))dx--;if(keys.has('d'))dx++;if(dx||dy){const l=Math.hypot(dx,dy);this.player.x=Phaser.Math.Clamp(this.player.x+dx/l*speed*dt/1000,35,WORLD_W-35);this.player.y=Phaser.Math.Clamp(this.player.y+dy/l*speed*dt/1000,35,WORLD_H-35);this.player.flipX=dx<0}
-    enemies.forEach(e=>{if(e.dead)return;e.cool=Math.max(0,e.cool-dt);const d=Phaser.Math.Distance.Between(this.player.x,this.player.y,e.x,e.y);if(d<340){const a=Math.atan2(this.player.y-e.y,this.player.x-e.x);e.x+=Math.cos(a)*e.speed*dt/1000;e.y+=Math.sin(a)*e.speed*dt/1000;if(d<52&&e.cool<=0){e.cool=900;state.player.hp=Math.max(0,state.player.hp-8);this.hitFX(this.player.x,this.player.y)}}});
-    if(state.cooldown>0)state.cooldown-=dt;state.player.energy=Math.min(100,state.player.energy+dt*.018);
-    particles.forEach((p,i)=>{p.obj.x+=p.vx*dt/1000;p.obj.y+=p.vy*dt/1000;p.vy+=180*dt/1000;p.life-=dt;p.obj.alpha=Math.max(0,p.life/400);if(p.life<=0){p.obj.destroy();particles.splice(i,1)}});
-    this.updateHud();
-    if(state.player.hp<=0){state.player.hp=state.player.maxHp;this.player.setPosition(1500,1100);this.toast('Aether Camp','You recovered at camp.')}
-  }
-  updateHud(){
-    const p=state.player;document.querySelector('#health-fill').style.width=`${p.hp/p.maxHp*100}%`;document.querySelector('#xp-fill').style.width=`${p.xp/(p.level*100)*100}%`;document.querySelector('#health-label').textContent=`${Math.ceil(p.hp)} / ${p.maxHp}`;document.querySelector('#energy-label').textContent=`${Math.floor(p.energy)} / 100`;document.querySelector('#xp-label').textContent=`${Math.floor(p.xp)} / ${p.level*100} XP`;document.querySelector('#level-label').textContent=`LV ${p.level}`;document.querySelector('#gold-label').textContent=p.gold;document.querySelector('#crystal-label').textContent=p.crystal;document.querySelector('#quest-progress').textContent=`${Math.min(state.kills,8)} / 8`;const c=document.querySelector('#cooldown');c.style.height=`${Math.max(0,state.cooldown)/280*55}px`;
-  }
+const W=1280,H=720,WORLD_W=3200,WORLD_H=2200;
+const state={player:{x:1500,y:1100,hp:100,maxHp:100,energy:100,xp:0,level:1,gold:125,crystal:8},kills:0,combo:0,comboTimer:0,attackCd:0,dodgeCd:0,dodgeTime:0,invuln:0,charging:false,charge:0,skill:'1',inventory:[['Moonsteel Saber','Rare','Weapon'],['Wayfarer Mantle','Uncommon','Armor'],['Luminous Shard','Rare','Material'],['Wild Herb','Common','Material'],['Aether Flask','Uncommon','Consumable']]};
+const keys=new Set(),enemies=[],resources=[],particles=[],floaters=[],pickups=[],trees=[],rocks=[];
+const rand=(a,b)=>a+(b-a)*Math.random(),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+class WorldScene extends Phaser.Scene{
+ constructor(){super('world')}
+ create(){this.cameras.main.setBackgroundColor('#17130f');this.input.mouse.disableContextMenu();this.makeTextures();this.buildWorld();this.player=this.add.sprite(state.player.x,state.player.y,'player').setDepth(20);this.player.setScale(1);this.spawnEnemies();this.spawnResources();this.cameras.main.startFollow(this.player,true,.12,.12);this.cameras.main.setBounds(0,0,WORLD_W,WORLD_H);this.physics.world.setBounds(0,0,WORLD_W,WORLD_H);this.input.on('pointerdown',p=>{if(p.leftButtonDown())this.beginAttack()});this.input.on('pointerup',p=>{if(p.leftButtonDown())this.releaseAttack()});this.updateHud()}
+ makeTextures(){const g=this.make.graphics({x:0,y:0,add:false});
+  g.clear();g.fillStyle(0x17120f);g.fillCircle(32,17,10);g.fillStyle(0xb88b55);g.fillTriangle(12,58,32,25,52,58);g.fillStyle(0x76553b);g.fillRect(22,30,20,24);g.lineStyle(3,0xd8b46d);g.lineBetween(43,35,59,19);g.generateTexture('player',64,64);
+  g.clear();g.fillStyle(0x29251f);g.fillEllipse(28,27,40,25);g.fillStyle(0x6b4c3c);g.fillTriangle(9,17,16,2,22,18);g.fillTriangle(35,18,43,2,48,18);g.fillStyle(0xc19a62);g.fillCircle(20,27,2);g.fillCircle(35,27,2);g.generateTexture('wolf',56,52);
+  g.clear();g.fillStyle(0x312d28);g.fillCircle(30,25,17);g.fillStyle(0x75644e);g.fillTriangle(7,53,30,34,53,53);g.fillStyle(0xd0ad68);g.fillCircle(24,23,3);g.fillCircle(37,23,3);g.lineStyle(2,0x9b7c51);g.strokeCircle(30,25,18);g.generateTexture('stalker',60,60);
+  g.clear();g.fillStyle(0x3e5033);g.fillCircle(18,19,17);g.fillCircle(39,18,17);g.fillCircle(29,7,14);g.fillStyle(0x5f7040);g.fillRect(24,18,10,37);g.fillStyle(0x252a1d);g.fillEllipse(29,56,20,6);g.generateTexture('tree',58,70);
+  g.clear();g.fillStyle(0x665c4c);g.fillCircle(18,20,15);g.fillCircle(36,17,16);g.fillCircle(29,31,18);g.fillStyle(0x3b352d);g.fillEllipse(28,43,40,10);g.generateTexture('rock',58,50);g.destroy()}
+ buildWorld(){const bg=this.add.graphics();bg.fillStyle(0x182016);bg.fillRect(0,0,WORLD_W,WORLD_H);
+  // handcrafted-feeling terrain patches rather than neon tiles
+  for(let i=0;i<180;i++){const x=rand(30,3170),y=rand(30,2170),r=rand(18,75);bg.fillStyle(i%4===0?0x1e2a1b:i%4===1?0x20291c:i%4===2?0x24271b:0x1b2419,.55);bg.fillEllipse(x,y,r*1.5,r);}
+  // river and banks
+  bg.lineStyle(34,0x26352b,.95);bg.beginPath();bg.moveTo(0,390);bg.bezierCurveTo(600,530,930,310,1400,470);bg.bezierCurveTo(2000,660,2400,400,3200,560);bg.strokePath();bg.lineStyle(18,0x415248,.9);bg.beginPath();bg.moveTo(0,390);bg.bezierCurveTo(600,530,930,310,1400,470);bg.bezierCurveTo(2000,660,2400,400,3200,560);bg.strokePath();
+  this.add.text(270,180,'WHISPERING WILDS',{fontFamily:'Georgia',fontSize:28,color:'#c7b48e',fontStyle:'italic',alpha:.6}).setDepth(1);
+  this.add.text(2400,410,'OLD WATCHTOWER',{fontFamily:'Georgia',fontSize:23,color:'#b5a27e',fontStyle:'italic',alpha:.5}).setDepth(1);
+  this.add.text(2320,1730,'FROSTFALL PASS',{fontFamily:'Georgia',fontSize:26,color:'#b8c0b1',fontStyle:'italic',alpha:.5}).setDepth(1);
+  for(let i=0;i<85;i++){const x=rand(70,3130),y=rand(70,2130);if(Math.hypot(x-1500,y-1100)<250)continue;const t=this.add.sprite(x,y,'tree').setAlpha(rand(.65,.95)).setScale(rand(.8,1.2));t.setDepth(y/10000);trees.push(t)}
+  for(let i=0;i<45;i++){const x=rand(70,3130),y=rand(70,2130);if(Math.hypot(x-1500,y-1100)<220)continue;const r=this.add.sprite(x,y,'rock').setAlpha(.72).setScale(rand(.7,1.15));r.setDepth(y/10000);rocks.push(r)}
+  const camp=this.add.circle(1500,1100,165,0x8b6a3f,.08).setStrokeStyle(2,0xb28a55,.3);camp.setDepth(2);this.add.circle(1500,1100,74,0x8c5b39,.08).setDepth(3);this.add.text(1500,1012,'AETHER CAMP',{fontFamily:'Georgia',fontSize:17,color:'#ddc79e',fontStyle:'italic'}).setOrigin(.5).setDepth(30);
+ }
+ spawnEnemies(){[[850,700,'wolf'],[1060,1460,'wolf'],[1900,760,'stalker'],[2160,1240,'stalker'],[720,1650,'wolf'],[2380,980,'stalker'],[1820,1640,'wolf'],[2700,730,'stalker'],[2750,1500,'wolf'],[620,980,'stalker']].forEach(s=>{const e=this.add.sprite(s[0],s[1],s[2]).setDepth(18);e.hp=s[2]==='stalker'?72:48;e.maxHp=e.hp;e.speed=s[2]==='stalker'?62:82;e.cool=0;e.telegraph=0;e.dead=false;e.name=s[2]==='stalker'?'Crystal Stalker':'Gloom Wolf';e.t=s[2];e.homeX=s[0];e.homeY=s[1];enemies.push(e)})}
+ spawnResources(){for(let i=0;i<34;i++){const x=rand(120,3080),y=rand(120,2080);if(Math.hypot(x-1500,y-1100)<220)continue;const type=i%3===0?'crystal':i%3===1?'herb':'ore';const col={crystal:0xb79b68,herb:0x718c58,ore:0x837867}[type];const g=this.add.graphics().setDepth(8);g.fillStyle(col,.9);g.fillTriangle(0,-10,9,5,-8,7);g.fillStyle(0x2a251e,.65);g.fillEllipse(0,9,18,5);g.x=x;g.y=y;g.type=type;g.activeNode=true;resources.push(g)}}
+ beginAttack(){if(state.attackCd>0||state.dodgeTime>0)return;state.charging=true;state.charge=0}
+ releaseAttack(){if(!state.charging)return;state.charging=false;const power=state.charge>.55?52:32;this.swing(power);state.attackCd=state.charge>.55?420:240;state.charge=0}
+ swing(power){state.combo=state.comboTimer>0?Math.min(3,state.combo+1):1;state.comboTimer=900;const range=120+state.combo*8;this.player.setScale(1.08);this.time.delayedCall(90,()=>this.player.setScale(1));this.arcFx(range);enemies.forEach(e=>{if(!e.dead&&Phaser.Math.Distance.Between(this.player.x,this.player.y,e.x,e.y)<range){e.hp-=power+state.combo*4;this.hitFX(e.x,e.y);this.floating(e.x,e.y,`-${power+state.combo*4}`);if(e.hp<=0)this.killEnemy(e)}});if(state.player.energy>=8)state.player.energy-=8}
+ arcFx(range){const a=this.add.graphics().setDepth(35);a.lineStyle(5,0xd9b36e,.72);a.beginPath();a.arc(this.player.x,this.player.y,range,-.9,.9,false);a.strokePath();this.time.delayedCall(100,()=>a.destroy());for(let i=0;i<6;i++){const p=this.add.circle(this.player.x+rand(-28,28),this.player.y+rand(-22,22),rand(2,4),0xd6a35e,.8).setDepth(36);particles.push({obj:p,vx:rand(-100,100),vy:rand(-100,30),life:260})}}
+ dodge(){if(state.dodgeCd>0||state.dodgeTime>0||state.player.energy<18)return;let dx=0,dy=0;if(keys.has('w'))dy--;if(keys.has('s'))dy++;if(keys.has('a'))dx--;if(keys.has('d'))dx++;if(!dx&&!dy)dx=this.player.flipX?-1:1;const l=Math.hypot(dx,dy);state.player.energy-=18;state.dodgeCd=650;state.dodgeTime=180;state.invuln=220;this.player.setAlpha(.45);this.player.x=clamp(this.player.x+dx/l*145,35,WORLD_W-35);this.player.y=clamp(this.player.y+dy/l*145,35,WORLD_H-35);this.time.delayedCall(180,()=>this.player.setAlpha(1))}
+ killEnemy(e){e.dead=true;e.setVisible(false);state.kills++;state.player.xp+=35;state.player.gold+=12;state.player.crystal++;this.spawnLoot(e.x,e.y);this.floating(e.x,e.y-25,'+35 XP');this.toast(e.name,'Defeated · +12 gold');this.levelCheck()}
+ spawnLoot(x,y){const p=this.add.circle(x,y,5,0xd3aa5d,.9).setDepth(12);pickups.push({obj:p,x,y,life:12000})}
+ collectResources(){resources.forEach(r=>{if(r.activeNode&&Phaser.Math.Distance.Between(this.player.x,this.player.y,r.x,r.y)<52){r.activeNode=false;r.setVisible(false);const names={crystal:'Luminous Shard',herb:'Wild Herb',ore:'Iron Ore'};state.player.gold+=r.type==='ore'?4:2;this.floating(r.x,r.y,`+ ${names[r.type]}`);this.toast('Gathered',names[r.type])}})}
+ collectLoot(){pickups.forEach((p,i)=>{if(Phaser.Math.Distance.Between(this.player.x,this.player.y,p.x,p.y)<65){state.player.gold+=8;p.obj.destroy();pickups.splice(i,1);this.toast('Found', '+8 gold')}})}
+ levelCheck(){const need=state.player.level*100;if(state.player.xp>=need){state.player.xp-=need;state.player.level++;state.player.maxHp+=10;state.player.hp=state.player.maxHp;this.toast('LEVEL '+state.player.level,'New strength gained')}}
+ hitFX(x,y){for(let i=0;i<7;i++){const p=this.add.circle(x,y,rand(2,4),i%2?0xd8b06b:0xe8d6b3,.9).setDepth(40);particles.push({obj:p,vx:rand(-110,110),vy:rand(-120,20),life:330})}}
+ floating(x,y,text){const t=this.add.text(x,y,text,{fontFamily:'Rajdhani',fontSize:14,color:'#ead5aa',fontStyle:'bold',stroke:'#1a120c',strokeThickness:3}).setOrigin(.5).setDepth(50);floaters.push({obj:t,life:700})}
+ toast(title,msg){const el=document.createElement('div');el.className='toast';el.innerHTML=`<strong>${title}</strong><br><span>${msg}</span>`;document.querySelector('#toast-stack').appendChild(el);setTimeout(()=>el.remove(),1800)}
+ update(_,dt){const p=state.player;if(state.dodgeTime>0)state.dodgeTime-=dt;if(state.invuln>0)state.invuln-=dt;if(state.attackCd>0)state.attackCd-=dt;if(state.dodgeCd>0)state.dodgeCd-=dt;if(state.comboTimer>0)state.comboTimer-=dt;else state.combo=0;
+  if(state.charging){state.charge=clamp(state.charge+dt/900,0,1);this.player.setTint(state.charge>.55?0xd9b36e:0xe5d7bc)}else this.player.clearTint();
+  const speed=210*(keys.has('shift')?1.18:1);let dx=0,dy=0;if(keys.has('w'))dy--;if(keys.has('s'))dy++;if(keys.has('a'))dx--;if(keys.has('d'))dx++;if(dx||dy){const l=Math.hypot(dx,dy);p.x=clamp(p.x+dx/l*speed*dt/1000,35,WORLD_W-35);p.y=clamp(p.y+dy/l*speed*dt/1000,35,WORLD_H-35);this.player.flipX=dx<0;this.player.x=p.x;this.player.y=p.y}
+  enemies.forEach(e=>{if(e.dead)return;e.cool=Math.max(0,e.cool-dt);const d=Phaser.Math.Distance.Between(p.x,p.y,e.x,e.y);if(d<330){const a=Math.atan2(p.y-e.y,p.x-e.x);if(e.t==='stalker'&&d<150&&e.cool<=0){e.telegraph=260;e.cool=1200}if(e.telegraph>0){e.telegraph-=dt;this.enemyTelegraph(e);if(e.telegraph<=0&&!state.invuln){p.hp=Math.max(0,p.hp-12);this.hitFX(p.x,p.y)}}else{e.x+=Math.cos(a)*e.speed*dt/1000;e.y+=Math.sin(a)*e.speed*dt/1000;if(d<48&&e.cool<=0&&!state.invuln){e.cool=850;p.hp=Math.max(0,p.hp-7);this.hitFX(p.x,p.y)}}}});
+  this.collectResources();this.collectLoot();p.energy=Math.min(100,p.energy+dt*.022);this.player.x=p.x;this.player.y=p.y;particles.forEach((q,i)=>{q.obj.x+=q.vx*dt/1000;q.obj.y+=q.vy*dt/1000;q.vy+=180*dt/1000;q.life-=dt;q.obj.alpha=Math.max(0,q.life/330);if(q.life<=0){q.obj.destroy();particles.splice(i,1)}});floaters.forEach((q,i)=>{q.obj.y-=dt*.025;q.life-=dt;q.obj.alpha=q.life/700;if(q.life<=0){q.obj.destroy();floaters.splice(i,1)}});pickups.forEach(q=>q.life-=dt);this.updateHud();if(p.hp<=0){p.hp=p.maxHp;p.x=1500;p.y=1100;this.toast('Aether Camp','You recovered and returned to camp.')}}
+ enemyTelegraph(e){if(!e.warn){e.warn=true;e.warnG=this.add.circle(e.x,e.y,38,0x9d5c43,.12).setStrokeStyle(2,0xb8785b,.65).setDepth(16)}else{e.warnG.x=e.x;e.warnG.y=e.y;e.warnG.alpha=.2+Math.abs(Math.sin(e.telegraph*.02))*.5}if(e.telegraph<=0&&e.warnG){e.warnG.destroy();e.warn=false}}
+ updateHud(){const p=state.player;document.querySelector('#health-fill').style.width=`${p.hp/p.maxHp*100}%`;document.querySelector('#xp-fill').style.width=`${p.xp/(p.level*100)*100}%`;document.querySelector('#health-label').textContent=`${Math.ceil(p.hp)} / ${p.maxHp}`;document.querySelector('#energy-label').textContent=`${Math.floor(p.energy)} / 100`;document.querySelector('#xp-label').textContent=`${Math.floor(p.xp)} / ${p.level*100} XP`;document.querySelector('#level-label').textContent=`LV ${p.level}`;document.querySelector('#gold-label').textContent=p.gold;document.querySelector('#crystal-label').textContent=p.crystal;document.querySelector('#quest-progress').textContent=`${Math.min(state.kills,8)} / 8`;document.querySelector('#cooldown').style.height=`${Math.max(0,state.attackCd)/420*55}px`;document.querySelector('#combo-label').textContent=state.combo>1?`COMBO x${state.combo}`:''}
 }
-
-const config={type:Phaser.AUTO,parent:'game',width:W,height:H,backgroundColor:'#07111b',physics:{default:'arcade',arcade:{debug:false}},scale:{mode:Phaser.Scale.RESIZE,autoCenter:Phaser.Scale.CENTER_BOTH},scene:[WorldScene]};
-const game=new Phaser.Game(config);
-
-window.addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys.add(k);if(['1','2','3','4','5'].includes(k))selectSkill(k);if(k==='i')openMenu('Inventory');if(k==='m')openMenu('World Map');if(k==='c')openMenu('Character');if(k==='escape')closeMenu()});
-window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
-document.querySelectorAll('.skill-slot').forEach(b=>b.addEventListener('click',()=>selectSkill(b.dataset.slot)));
-document.querySelector('#menu-close').addEventListener('click',closeMenu);
-function selectSkill(n){document.querySelectorAll('.skill-slot').forEach(x=>x.classList.toggle('selected',x.dataset.slot===n))}
-function openMenu(type){const o=document.querySelector('#menu-overlay'),title=document.querySelector('#menu-title'),c=document.querySelector('#menu-content');o.classList.remove('hidden');title.textContent=type;if(type==='Inventory'){c.innerHTML=`<div class="inventory-grid">${state.inventory.map(i=>`<div class="item-card"><div class="rarity">${i[1]}</div><div class="item-name">${i[0]}</div><div class="item-type">${i[2]}</div></div>`).join('')}</div>`}else if(type==='Character'){c.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div class="item-card"><div class="rarity">LEVEL</div><div class="item-name">Veyra · ${state.player.level}</div><div class="item-type">Aetherbound Vanguard</div></div><div class="item-card"><div class="rarity">BUILD</div><div class="item-name">Agile Fighter</div><div class="item-type">Dash / Parry / Critical</div></div></div>`}else{c.innerHTML=`<div class="item-card" style="min-height:250px;text-align:center;padding:60px"><div class="rarity">WORLD MAP</div><div class="item-name">Moonlit Frontier</div><div class="item-type">Whispering Wilds · Ancient Ruins · Frostfall Pass</div></div>`}}
+const config={type:Phaser.AUTO,parent:'game',width:W,height:H,backgroundColor:'#17130f',physics:{default:'arcade',arcade:{debug:false}},scale:{mode:Phaser.Scale.RESIZE,autoCenter:Phaser.Scale.CENTER_BOTH},scene:[WorldScene]};new Phaser.Game(config);
+window.addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k===' ')e.preventDefault();keys.add(k);if(k===' ')window.__scene?.dodge();if(['1','2','3','4','5'].includes(k))selectSkill(k);if(k==='i')openMenu('Inventory');if(k==='m')openMenu('World Map');if(k==='c')openMenu('Character');if(k==='escape')closeMenu()});window.addEventListener('keyup',e=>{keys.delete(e.key.toLowerCase())});
+function selectSkill(n){state.skill=n;document.querySelectorAll('.skill-slot').forEach(x=>x.classList.toggle('selected',x.dataset.slot===n))}document.querySelectorAll('.skill-slot').forEach(b=>b.addEventListener('click',()=>selectSkill(b.dataset.slot)));document.querySelector('#menu-close').addEventListener('click',closeMenu);
+function openMenu(type){const o=document.querySelector('#menu-overlay'),title=document.querySelector('#menu-title'),c=document.querySelector('#menu-content');o.classList.remove('hidden');title.textContent=type;if(type==='Inventory'){c.innerHTML=`<div class="inventory-grid">${state.inventory.map(i=>`<div class="item-card"><div class="rarity">${i[1]}</div><div class="item-name">${i[0]}</div><div class="item-type">${i[2]}</div></div>`).join('')}</div>`}else if(type==='Character'){c.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="item-card"><div class="rarity">ADVENTURER</div><div class="item-name">Veyra · Level ${state.player.level}</div><div class="item-type">Balanced explorer</div></div><div class="item-card"><div class="rarity">COMBAT STYLE</div><div class="item-name">Wayfarer</div><div class="item-type">Combo attacks · dodge · charged strikes</div></div></div>`}else{c.innerHTML=`<div class="item-card" style="min-height:250px;text-align:center;padding:60px"><div class="rarity">THE FRONTIER</div><div class="item-name">Moonlit Frontier</div><div class="item-type">Whispering Wilds · Old Watchtower · Frostfall Pass</div></div>`}}
 function closeMenu(){document.querySelector('#menu-overlay').classList.add('hidden')}
+setTimeout(()=>{const canvas=document.querySelector('canvas');if(canvas)window.__scene=window.__scene||null},500);window.addEventListener('load',()=>{setTimeout(()=>{if(window.game?.scene?.keys?.world)window.__scene=window.game.scene.keys.world},300)});
