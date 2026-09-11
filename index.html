@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#07101d" />
+  <meta name="theme-color" content="#17130f" />
   <title>Echoes of Aether — 2D Action RPG</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,7 +15,7 @@
     <div id="game"></div>
     <div id="hud" aria-live="polite">
       <div class="hud-top">
-        <div class="player-card panel-glass">
+        <div class="player-card">
           <div class="avatar-ring"><span>V</span></div>
           <div class="player-meta">
             <div class="player-name">Veyra</div>
@@ -25,19 +25,19 @@
             <div class="resource-row"><span class="heart">♥</span><span id="health-label">100 / 100</span><span class="divider">·</span><span class="mana">✦</span><span id="energy-label">100 / 100</span></div>
           </div>
         </div>
-        <div class="zone-card panel-glass">
+        <div class="zone-card">
           <div class="eyebrow">CURRENT REGION</div>
           <div class="zone-title">Moonlit Frontier</div>
           <div class="zone-subtitle">Whispering Wilds · Threat II</div>
         </div>
-        <div class="currency-card panel-glass">
+        <div class="currency-card">
           <div><span class="currency-icon gold">◈</span><b id="gold-label">125</b><small>GOLD</small></div>
-          <div><span class="currency-icon crystal">◇</span><b id="crystal-label">8</b><small>AEther</small></div>
+          <div><span class="currency-icon crystal">◇</span><b id="crystal-label">8</b><small>AETHER</small></div>
         </div>
       </div>
       <div class="hud-bottom">
-        <div class="objective panel-glass"><div class="eyebrow">ACTIVE QUEST</div><strong>First Light</strong><span>Clear the corrupted grove · <b id="quest-progress">0 / 8</b></span></div>
-        <div class="hotbar panel-glass">
+        <div class="objective"><div class="eyebrow">ACTIVE QUEST</div><strong>First Light</strong><span>Clear the corrupted grove · <b id="quest-progress">0 / 8</b></span></div>
+        <div class="hotbar">
           <button class="skill-slot selected" data-slot="1"><kbd>1</kbd><span>⚔</span></button>
           <button class="skill-slot" data-slot="2"><kbd>2</kbd><span>✧</span></button>
           <button class="skill-slot" data-slot="3"><kbd>3</kbd><span>◈</span></button>
@@ -45,12 +45,13 @@
           <button class="skill-slot ultimate" data-slot="5"><kbd>5</kbd><span>✹</span></button>
           <div class="cooldown" id="cooldown"></div>
         </div>
-        <div class="controls panel-glass"><span><kbd>WASD</kbd> Move</span><span><kbd>SPACE</kbd> Dash</span><span><kbd>LMB</kbd> Attack</span><span><kbd>E</kbd> Interact</span><span><kbd>I</kbd> Inventory</span></div>
+        <div class="controls"><span><kbd>WASD</kbd> Move</span><span><kbd>SPACE</kbd> Dash</span><span><kbd>LMB</kbd> Attack</span><span><kbd>I</kbd> Inventory</span></div>
       </div>
+      <div id="combo-label"></div>
     </div>
     <div id="toast-stack"></div>
     <div id="menu-overlay" class="hidden">
-      <div class="menu-window panel-glass">
+      <div class="menu-window">
         <button id="menu-close" class="close-btn">×</button>
         <div class="menu-heading"><span class="eyebrow">AETHERBOUND</span><h1 id="menu-title">Inventory</h1></div>
         <div id="menu-content"></div>
