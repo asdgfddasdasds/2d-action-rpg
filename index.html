@@ -15,48 +15,20 @@
   <div id="game"></div>
   <div id="hud" aria-live="polite">
     <div class="hud-top">
-      <div class="player-card">
-        <div class="avatar-ring"><span>V</span></div>
-        <div class="player-meta">
-          <div class="player-name">Veyra</div>
-          <div class="level-row"><span id="level-label">LV 1</span><span id="xp-label">0 / 100 XP</span></div>
-          <div class="bar xp"><i id="xp-fill"></i></div>
-          <div class="bar health"><i id="health-fill"></i></div>
-          <div class="resource-row"><span class="heart">♥</span><span id="health-label">100 / 100</span><span class="divider">·</span><span class="mana">✦</span><span id="energy-label">100 / 100</span></div>
-        </div>
-      </div>
-      <div class="zone-card">
-        <div class="eyebrow">MOONLIT FRONTIER</div>
-        <div class="zone-title">Whispering Wilds</div>
-        <div class="zone-subtitle">Aether Camp · Threat II</div>
-      </div>
-      <div class="currency-card">
-        <div><span class="currency-icon gold">◈</span><b id="gold-label">125</b><small>GOLD</small></div>
-        <div><span class="currency-icon crystal">◇</span><b id="crystal-label">8</b><small>AETHER</small></div>
-      </div>
+      <div class="player-card"><div class="avatar-ring"><span>V</span></div><div class="player-meta"><div class="player-name">Veyra</div><div class="level-row"><span id="level-label">LV 1</span><span id="xp-label">0 / 100 XP</span></div><div class="bar xp"><i id="xp-fill"></i></div><div class="bar health"><i id="health-fill"></i></div><div class="resource-row"><span class="heart">♥</span><span id="health-label">120 / 120</span><span class="divider">·</span><span class="mana">✦</span><span id="energy-label">100 / 100</span></div></div></div>
+      <div class="zone-card"><div class="eyebrow">MOONLIT FRONTIER</div><div class="zone-title">Whispering Wilds</div><div class="zone-subtitle">Aether Camp · Threat II</div></div>
+      <div class="currency-card"><div><span class="currency-icon gold">◈</span><b id="gold-label">125</b><small>GOLD</small></div><div><span class="currency-icon crystal">◇</span><b id="crystal-label">8</b><small>AETHER</small></div></div>
     </div>
     <div class="hud-bottom">
       <div class="objective"><div class="eyebrow">FIRST LIGHT</div><strong>Reach the Old Watchtower</strong><span>Follow the road and clear the path · <b id="quest-progress">0 / 1</b></span></div>
-      <div class="hotbar">
-        <button class="skill-slot selected" data-slot="1"><kbd>1</kbd><span>◇</span></button>
-        <button class="skill-slot" data-slot="2"><kbd>2</kbd><span>◒</span></button>
-        <button class="skill-slot" data-slot="3"><kbd>3</kbd><span>✧</span></button>
-        <button class="skill-slot" data-slot="4"><kbd>4</kbd><span>⌁</span></button>
-        <button class="skill-slot ultimate" data-slot="5"><kbd>5</kbd><span>✦</span></button>
-      </div>
+      <div class="hotbar"><button class="skill-slot selected" data-slot="1"><kbd>1</kbd><span>◇</span></button><button class="skill-slot" data-slot="2"><kbd>2</kbd><span>◒</span></button><button class="skill-slot" data-slot="3"><kbd>3</kbd><span>✧</span></button><button class="skill-slot" data-slot="4"><kbd>4</kbd><span>⌁</span></button><button class="skill-slot ultimate" data-slot="5"><kbd>5</kbd><span>✦</span></button></div>
       <div class="controls"><span><kbd>WASD</kbd> Move</span><span><kbd>SHIFT</kbd> Sprint</span><span><kbd>SPACE</kbd> Dash</span><span><kbd>LMB</kbd> Strike</span><span><kbd>E</kbd> Interact</span><span><kbd>F</kbd> Gather</span><span><kbd>I</kbd> Pack</span><span><kbd>J</kbd> Quests</span><span><kbd>K</kbd> Craft</span><span><kbd>B</kbd> Camp</span><span><kbd>M</kbd> Map</span></div>
     </div>
     <div id="combo-label"></div>
   </div>
   <div id="toast-stack"></div>
-  <div id="menu-overlay" class="hidden">
-    <div class="menu-window">
-      <button id="menu-close" class="close-btn">×</button>
-      <div class="menu-heading"><span class="eyebrow">AETHERBOUND</span><h1 id="menu-title">Inventory</h1></div>
-      <div id="menu-content"></div>
-    </div>
-  </div>
+  <div id="menu-overlay" class="hidden"><div class="menu-window"><button id="menu-close" class="close-btn">×</button><div class="menu-heading"><span class="eyebrow">AETHERBOUND</span><h1 id="menu-title">Inventory</h1></div><div id="menu-content"></div></div></div>
 </div>
-<script type="module" src="src/main.js"></script>
+<script type="module" src="src/game.js"></script>
 </body>
 </html>
