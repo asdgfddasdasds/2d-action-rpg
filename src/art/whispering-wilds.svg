@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2600" height="1900" viewBox="0 0 2600 1900">
+<defs>
+ <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#70879a"/><stop offset=".48" stop-color="#b9a57e"/><stop offset="1" stop-color="#3c4d3a"/></linearGradient>
+ <linearGradient id="mount" x2="0" y2="1"><stop stop-color="#77858a"/><stop offset="1" stop-color="#344239"/></linearGradient>
+ <linearGradient id="ground" x2="0" y2="1"><stop stop-color="#3f5135"/><stop offset="1" stop-color="#1e2a20"/></linearGradient>
+ <linearGradient id="river" x2="0" y2="1"><stop stop-color="#5f8790"/><stop offset=".5" stop-color="#9ab5aa"/><stop offset="1" stop-color="#315866"/></linearGradient>
+ <radialGradient id="sun"><stop stop-color="#ffe4a4" stop-opacity="1"/><stop offset="1" stop-color="#ffe4a4" stop-opacity="0"/></radialGradient>
+ <filter id="soft"><feGaussianBlur stdDeviation="18"/></filter>
+ <filter id="mist"><feGaussianBlur stdDeviation="7"/></filter>
+</defs>
+<!-- sky and distant atmosphere -->
+<rect width="2600" height="1900" fill="url(#sky)"/>
+<circle cx="2090" cy="285" r="270" fill="url(#sun)"/>
+<circle cx="2090" cy="285" r="54" fill="#ffe2a0"/>
+<path d="M0 570 L280 360 500 555 780 250 1040 555 1300 300 1510 555 1810 245 2100 555 2390 330 2600 510 V900 H0Z" fill="#53636a" opacity=".7"/>
+<path d="M0 650 L330 420 550 635 800 330 1070 640 1310 390 1570 640 1840 320 2140 650 2390 440 2600 600 V980 H0Z" fill="url(#mount)"/>
+<path d="M690 435 L800 330 890 440 835 410 790 465Z M1730 425 L1840 320 1930 440 1870 405 1815 470Z" fill="#d7d8cf" opacity=".9"/>
+<path d="M0 780 C370 680 520 720 810 650 C1130 570 1370 700 1660 610 C1980 510 2290 670 2600 570 V1900 H0Z" fill="#354a35"/>
+<!-- distant forest -->
+<g opacity=".8" fill="#243629">
+ <path d="M40 910 l65-180 65 180z M160 900 l58-155 58 155z M290 920 l70-190 70 190z M430 900 l55-155 55 155z M560 920 l70-185 70 185z M700 910 l58-160 58 160z M840 930 l68-190 68 190z M1000 900 l60-170 60 170z M1160 920 l70-190 70 190z M1320 900 l60-160 60 160z M1480 920 l72-195 72 195z M1650 900 l60-170 60 170z M1810 920 l70-185 70 185z M1970 910 l60-165 60 165z M2140 920 l70-185 70 185z M2310 900 l60-165 60 165z"/>
+</g>
+<!-- main ground -->
+<path d="M0 860 C350 760 690 840 980 760 C1270 680 1570 790 1840 720 C2150 650 2370 760 2600 690 V1900 H0Z" fill="url(#ground)"/>
+<!-- layered forest banks -->
+<g fill="#263a28" opacity=".95">
+ <path d="M0 1120 Q170 920 330 1090 T650 1060 T970 1040 T1280 1010 T1600 1030 T1910 970 T2220 1020 T2600 940 V1500 H0Z"/>
+ <path d="M0 1390 Q240 1190 470 1300 T930 1260 T1400 1280 T1900 1190 T2320 1250 T2600 1180 V1900 H0Z"/>
+</g>
+<!-- river -->
+<path d="M2040 650 C1940 820 2010 930 1880 1040 C1740 1160 1850 1280 1710 1410 C1560 1540 1640 1670 1480 1900 H2240 C2260 1700 2150 1570 2250 1430 C2350 1280 2240 1140 2360 1000 C2460 875 2390 760 2490 650Z" fill="#203d43" opacity=".7"/>
+<path d="M2070 690 C1980 830 2050 930 1910 1050 C1780 1160 1890 1270 1750 1400 C1600 1540 1690 1660 1530 1900 H2160 C2180 1710 2080 1580 2180 1440 C2280 1290 2170 1160 2290 1020 C2390 900 2320 790 2420 690Z" fill="url(#river)" opacity=".92"/>
+<g fill="none" stroke="#d7e0ce" stroke-width="9" opacity=".45">
+ <path d="M1930 1070 Q2080 1010 2220 1060"/><path d="M1810 1290 Q1980 1230 2130 1280"/><path d="M1670 1510 Q1880 1450 2040 1510"/><path d="M1590 1710 Q1770 1660 1930 1700"/>
+</g>
+<!-- waterfall -->
+<path d="M2080 675 L2180 675 2160 890 Q2130 950 2090 890Z" fill="#b8d0c9" opacity=".8"/>
+<path d="M2110 700 L2160 700 2140 920 Q2125 950 2110 910Z" fill="#e0e8dc" opacity=".7"/>
+<!-- old road -->
+<path d="M0 1710 C300 1620 540 1660 790 1510 C1030 1360 1230 1280 1450 1160 C1640 1060 1800 1010 1990 940" fill="none" stroke="#20281f" stroke-width="150" opacity=".9"/>
+<path d="M0 1710 C300 1620 540 1660 790 1510 C1030 1360 1230 1280 1450 1160 C1640 1060 1800 1010 1990 940" fill="none" stroke="#76664d" stroke-width="96"/>
+<path d="M0 1690 C300 1605 540 1645 790 1495 C1030 1345 1230 1265 1450 1145 C1640 1045 1800 995 1990 925" fill="none" stroke="#aa9369" stroke-width="8" opacity=".65"/>
+<!-- camp clearing -->
+<ellipse cx="760" cy="1515" rx="300" ry="175" fill="#26321f"/>
+<path d="M540 1540 L610 1370 700 1535Z" fill="#786449" stroke="#b49b6d" stroke-width="5"/>
+<path d="M760 1545 L845 1360 940 1545Z" fill="#6f5b46" stroke="#aa9064" stroke-width="5"/>
+<path d="M675 1590 Q750 1510 825 1590 Q750 1650 675 1590Z" fill="#4a2c1d"/>
+<path d="M750 1580 Q720 1530 750 1485 Q780 1530 750 1580Z" fill="#e0a45c"/><path d="M750 1575 Q770 1530 792 1510 Q805 1555 750 1575Z" fill="#f0c779"/>
+<g stroke="#a17e50" stroke-width="7"><path d="M570 1510 L620 1550"/><path d="M930 1510 L880 1550"/></g>
+<!-- bridge -->
+<g transform="translate(1770 1110)">
+ <path d="M-190 55 Q0 130 190 55" fill="none" stroke="#2a251d" stroke-width="38"/>
+ <path d="M-190 35 Q0 105 190 35" fill="none" stroke="#8c6d49" stroke-width="25"/>
+ <path d="M-175 0 L175 0" stroke="#a4865b" stroke-width="16"/>
+ <g stroke="#5b4632" stroke-width="12"><path d="M-150 -18 L-150 28"/><path d="M-110 -20 L-110 40"/><path d="M-70 -21 L-70 50"/><path d="M-30 -22 L-30 60"/><path d="M10 -22 L10 60"/><path d="M50 -21 L50 50"/><path d="M90 -20 L90 40"/><path d="M130 -18 L130 28"/></g>
+</g>
+<!-- watchtower in distance -->
+<g transform="translate(1960 585)">
+ <ellipse cx="0" cy="205" rx="150" ry="45" fill="#20271f" opacity=".8"/>
+ <path d="M-65 195 L-52 -80 52 -80 65 195Z" fill="#66645a" stroke="#363932" stroke-width="8"/>
+ <path d="M-78 -92 L78 -92 60 -112 -60 -112Z" fill="#4b4033" stroke="#2b2924" stroke-width="7"/>
+ <path d="M-25 195 L-25 80 25 80 25 195Z" fill="#242722"/>
+ <g fill="#b69a65"><rect x="-38" y="-40" width="20" height="28"/><rect x="18" y="-40" width="20" height="28"/><rect x="-34" y="42" width="20" height="24"/><rect x="14" y="42" width="20" height="24"/></g>
+ <path d="M-70 -118 L70 -118" stroke="#8e754e" stroke-width="9"/>
+ <path d="M45 -130 L45 -210" stroke="#5a4a39" stroke-width="6"/><path d="M45 -205 L100 -180 45 -160Z" fill="#7d4e49"/>
+</g>
+<!-- foreground trees -->
+<g fill="#172319" stroke="#3c4d34" stroke-width="8">
+ <path d="M80 1510 L120 1020 30 1180 85 1160 45 980 135 1110 165 900 205 1110 300 980 260 1180 320 1160 225 1510Z"/>
+ <path d="M330 1730 L380 1150 300 1270 365 1240 320 1070 400 1190 430 930 470 1190 560 1070 515 1260 580 1230 480 1730Z"/>
+ <path d="M1160 1770 L1210 1160 1130 1290 1190 1260 1145 1080 1230 1210 1260 900 1300 1210 1390 1080 1340 1260 1400 1290 1320 1770Z"/>
+ <path d="M2420 1740 L2470 1160 2390 1290 2450 1260 2405 1080 2490 1210 2520 900 2560 1210 2600 1160 2600 1740Z"/>
+</g>
+<!-- flowers and foreground texture -->
+<g fill="#b1a16c" opacity=".8">
+ <circle cx="420" cy="1580" r="5"/><circle cx="455" cy="1560" r="4"/><circle cx="510" cy="1620" r="5"/><circle cx="1000" cy="1450" r="4"/><circle cx="1060" cy="1490" r="5"/><circle cx="1380" cy="1300" r="4"/><circle cx="1510" cy="1230" r="5"/><circle cx="2260" cy="1160" r="4"/>
+</g>
+<!-- mist bands -->
+<path d="M0 930 Q500 820 980 950 T1900 900 T2600 930" fill="none" stroke="#d5d9c7" stroke-width="75" opacity=".12" filter="url(#mist)"/>
+<path d="M1050 1160 Q1450 1060 1850 1160 T2500 1100" fill="none" stroke="#d8ddd0" stroke-width="60" opacity=".1" filter="url(#mist)"/>
+<!-- signpost -->
+<g transform="translate(1460 1040)"><path d="M0 100 L0 -100" stroke="#493928" stroke-width="16"/><path d="M0 -50 L125 -50 95 -15 0 -15Z" fill="#69513a" stroke="#a7895e" stroke-width="4"/><path d="M0 5 L-130 5 -100 40 0 40Z" fill="#69513a" stroke="#a7895e" stroke-width="4"/><text x="12" y="-27" font-family="Georgia" font-size="23" fill="#e1cfaa">WATCHTOWER →</text><text x="-112" y="29" font-family="Georgia" font-size="22" fill="#e1cfaa">← CAMP</text></g>
+</svg>
