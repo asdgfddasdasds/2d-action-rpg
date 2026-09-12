@@ -3,17 +3,47 @@ export class PlayerController {
     this.p = player;
     this.input = input;
     this.facing = { x: 1, y: 0 };
-    this.dash = { active: false, t: 0, duration: 120, speed: 980, cooldown: 0, cooldownMax: 320, invuln: 0 };
+    this.lastIntent = { x: 1, y: 0 };
+    this.dash = { active: false, t: 0, duration: 112, speed: 1040, cooldown: 300, cooldownMax: 300, invuln: 0 };
     this.buffer = { dash: 0, action: 0 };
-    this.runSpeed = 250;
-    this.sprintSpeed = 345;
-    this.accel = 3200;
-    this.brake = 4200;
+    this.runSpeed = 270;
+    this.sprintSpeed = 350;
+    this.turnSpeed = 99999;
+    this.accel = 99999;
+    this.brake = 99999;
+    this.wasMoving = false;
   }
 
   press(name) {
-    if (name === 'dash') this.buffer.dash = 100;
-    if (name === 'action') this.buffer.action = 100;
+    if (name === 'dash') this.buffer.dash = 110;
+    if (name === 'action') this.buffer.action = 90;
+  }
+
+  consumeAction() {
+    if (this.buffer.action <= 0) return false;
+    this.buffer.action = 0;
+    return true;
+  }
+
+  readMove() {
+    const right = this.input.down('d') || this.input.down('arrowright');
+    const left = this.input.down('a') || this.input.down('arrowleft');
+    const down = this.input.down('s') || this.input.down('arrowdown');
+    const up = this.input.down('w') || this.input.down('arrowup');
+
+    let x = (right ? 1 : 0) - (left ? 1 : 0);
+    let y = (down ? 1 : 0) - (up ? 1 : 0);
+
+    // If opposing keys are held, prefer the most recently pressed intent.
+    if (x === 0 && (right || left)) x = this.lastIntent.x;
+    if (y === 0 && (down || up)) y = this.lastIntent.y;
+
+    const len = Math.hypot(x, y);
+    if (!len) return { moving: false, x: 0, y: 0 };
+    x /= len; y /= len;
+    this.lastIntent.x = x;
+    this.lastIntent.y = y;
+    return { moving: true, x, y };
   }
 
   update(dt) {
@@ -24,59 +54,60 @@ export class PlayerController {
     this.buffer.dash = Math.max(0, this.buffer.dash - dt);
     this.buffer.action = Math.max(0, this.buffer.action - dt);
 
+    const intent = this.readMove();
+
     if (this.dash.active) {
       this.dash.t -= dt;
-      p.vx = this.facing.x * this.dash.speed;
-      p.vy = this.facing.y * this.dash.speed;
+      p.vx = this.dash.x * this.dash.speed;
+      p.vy = this.dash.y * this.dash.speed;
       p.x += p.vx * ms;
       p.y += p.vy * ms;
       if (this.dash.t <= 0) {
         this.dash.active = false;
-        this.dash.invuln = 80;
-        p.vx = 0;
-        p.vy = 0;
+        this.dash.invuln = 72;
+        p.vx = intent.moving ? intent.x * (this.input.down('shift') ? this.sprintSpeed : this.runSpeed) : 0;
+        p.vy = intent.moving ? intent.y * (this.input.down('shift') ? this.sprintSpeed : this.runSpeed) : 0;
       }
       return { moving: true, sprinting: false, dashing: true };
     }
 
     if (this.buffer.dash > 0 && this.dash.cooldown <= 0 && p.energy >= 24) {
       this.buffer.dash = 0;
+      const d = intent.moving ? intent : this.lastIntent;
+      this.dash.x = d.x;
+      this.dash.y = d.y;
+      this.facing.x = d.x;
+      this.facing.y = d.y;
       this.dash.active = true;
       this.dash.t = this.dash.duration;
       this.dash.cooldown = this.dash.cooldownMax;
-      this.dash.invuln = this.dash.duration + 60;
+      this.dash.invuln = this.dash.duration + 55;
       p.energy -= 24;
+      p.vx = this.dash.x * this.dash.speed;
+      p.vy = this.dash.y * this.dash.speed;
       return { moving: true, sprinting: false, dashing: true };
     }
 
-    const x = (this.input.down('d') ? 1 : 0) - (this.input.down('a') ? 1 : 0);
-    const y = (this.input.down('s') ? 1 : 0) - (this.input.down('w') ? 1 : 0);
-    const len = Math.hypot(x, y);
-    const moving = len > 0;
-    const nx = moving ? x / len : 0;
-    const ny = moving ? y / len : 0;
+    const moving = intent.moving;
     const sprinting = moving && this.input.down('shift') && p.energy > 0;
     const target = sprinting ? this.sprintSpeed : this.runSpeed;
 
-    // Deliberately short acceleration and strong braking: input should feel immediate,
-    // not like a character sliding across ice.
-    const desiredX = nx * target;
-    const desiredY = ny * target;
-    const rate = moving ? this.accel : this.brake;
-    const step = rate * ms;
-    p.vx = approach(p.vx, desiredX, step);
-    p.vy = approach(p.vy, desiredY, step);
-
-    if (sprinting) p.energy = Math.max(0, p.energy - 28 * ms);
-    else p.energy = Math.min(p.maxEnergy, p.energy + 18 * ms);
+    // Deliberately no travel inertia. The player reaches intended speed immediately
+    // and stops immediately, matching the controllable feel of classic precision 2D games.
+    p.vx = moving ? intent.x * target : 0;
+    p.vy = moving ? intent.y * target : 0;
 
     if (moving) {
-      this.facing.x = nx;
-      this.facing.y = ny;
+      this.facing.x = intent.x;
+      this.facing.y = intent.y;
     }
+
+    if (sprinting) p.energy = Math.max(0, p.energy - 30 * ms);
+    else p.energy = Math.min(p.maxEnergy, p.energy + 22 * ms);
 
     p.x += p.vx * ms;
     p.y += p.vy * ms;
+    this.wasMoving = moving;
     return { moving, sprinting, dashing: false };
   }
 
@@ -87,10 +118,4 @@ export class PlayerController {
   get dashReady() {
     return this.dash.cooldown <= 0;
   }
-}
-
-function approach(value, target, amount) {
-  if (value < target) return Math.min(value + amount, target);
-  if (value > target) return Math.max(value - amount, target);
-  return target;
 }
